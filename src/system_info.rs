@@ -15,6 +15,7 @@ typedef struct {
     char vram_unit[4];
 } DataStruct;
 */
+const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 #[derive(Serialize, Debug, Clone)]
 pub struct SystemInfo {
@@ -113,6 +114,7 @@ impl GpuInfo {
             .arg("-q")
             .arg("-x")
             .stdout(std::process::Stdio::piped())
+            .creation_flags(CREATE_NO_WINDOW)
             .spawn()
         else {
             return None;

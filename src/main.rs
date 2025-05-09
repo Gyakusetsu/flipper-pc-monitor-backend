@@ -1,8 +1,11 @@
+#![windows_subsystem = "windows"]
+
 use btleplug::api::{Central, CentralEvent, Peripheral as _, ScanFilter};
 use btleplug::platform::{Adapter, Manager, Peripheral, PeripheralId};
 use futures::stream::StreamExt;
 use std::collections::HashMap;
 use std::error::Error;
+use tray_item::{IconSource, TrayItem};
 
 mod flipper_manager;
 mod helpers;
@@ -56,6 +59,15 @@ async fn reconnect_thread(central: Adapter, id: PeripheralId) {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    let mut tray = TrayItem::new(
+        "flipper-pc-monitor-backend",
+        IconSource::Resource("tray-default"),
+    )?;
+
+    tray.add_menu_item("Quit", || {
+        std::process::exit(0);
+    })?;
+
     pretty_env_logger::init();
     // std::env::set_var("RUST_BACKTRACE", "full");
 
