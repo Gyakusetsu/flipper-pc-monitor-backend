@@ -1,4 +1,5 @@
 use crate::helpers::{avg_vecu32, nvd_r2u64, pop_4u8};
+use bincode::Encode;
 use serde::Serialize;
 use sysinfo::MemoryRefreshKind;
 use tokio::io::AsyncReadExt;
@@ -19,7 +20,7 @@ const CREATE_NO_WINDOW: u32 = 0x08000000;
 const CPU_TJMAX: u8 = 89;
 const GPU_MAX_TEMP: u8 = 88;
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone, Encode)]
 pub struct SystemInfo {
     pub cpu_usage: u8,
     pub ram_max: u16,
@@ -61,7 +62,7 @@ impl SystemInfo {
     pub async fn get_system_info(system_info: &mut sysinfo::System) -> Self {
         // Need to refresh only CPU and RAM => big boost when combined with reusing system_info
         // system_info.refresh_all();
-        system_info.refresh_memory_specifics(MemoryRefreshKind::new().with_ram());
+        system_info.refresh_memory_specifics(MemoryRefreshKind::everything().with_ram());
         let base = 1024;
 
         let ram_max = system_info.total_memory();

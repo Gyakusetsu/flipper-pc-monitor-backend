@@ -29,7 +29,8 @@ async fn data_sender(flipper: Peripheral) {
     let mut system_info = sysinfo::System::new_all();
     loop {
         let systeminfo = system_info::SystemInfo::get_system_info(&mut system_info).await;
-        let systeminfo_bytes = bincode::serialize(&systeminfo).unwrap();
+        let config = bincode::config::standard().with_fixed_int_encoding().with_little_endian();
+        let systeminfo_bytes = bincode::encode_to_vec(&systeminfo, config).unwrap();
         // println!("Writing {:?} to Flipper", systeminfo_bytes);
 
         if let Err(e) = flipper
