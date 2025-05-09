@@ -16,6 +16,8 @@ typedef struct {
 } DataStruct;
 */
 const CREATE_NO_WINDOW: u32 = 0x08000000;
+const CPU_TJMAX: u8 = 89;
+const GPU_MAX_TEMP: u8 = 88;
 
 #[derive(Serialize, Debug, Clone)]
 pub struct SystemInfo {
@@ -27,6 +29,10 @@ pub struct SystemInfo {
     pub vram_max: u16,
     pub vram_usage: u8,
     pub vram_unit: [u8; 4],
+    pub cpu_temp: u8,
+    pub gpu_temp: u8,
+    pub cpu_tjmax: u8,
+    pub gpu_max_temp: u8,
 }
 
 impl SystemInfo {
@@ -80,6 +86,7 @@ impl SystemInfo {
                     .map(|c| c.cpu_usage() as u32)
                     .collect(),
             ) as u8,
+            cpu_temp: 0,
             // cpu_usage: system_info.cpus().first().unwrap().cpu_usage() as u8,
             ram_max: (ram_max as f64 / u64::pow(base, ram_exp) as f64 * 10.0) as u16,
             ram_usage: (system_info.used_memory() as f64 / ram_max as f64 * 100.0) as u8,
@@ -96,6 +103,12 @@ impl SystemInfo {
                 None => u8::MAX,
             },
             vram_unit: pop_4u8(Self::get_unit(vram_exp).as_bytes()),
+            gpu_temp: match &gpu_info {
+                Some(gi) => gi.gpu_temp as u8,
+                None => u8::MAX,
+            },
+            cpu_tjmax: CPU_TJMAX,
+            gpu_max_temp: GPU_MAX_TEMP,
         }
     }
 }
@@ -105,6 +118,7 @@ pub struct GpuInfo {
     pub gpu_usage: u64,
     pub vram_max: u64,
     pub vram_used: u64,
+    pub gpu_temp: u64,
 }
 
 impl GpuInfo {
@@ -140,11 +154,15 @@ impl GpuInfo {
                 let Some(vram_used) = nvd_r2u64(g["fb_memory_usage"]["used"].to_string()) else {
                     return None;
                 };
+                let Some(gpu_temp) = nvd_r2u64(g["temperature"]["gpu_temp"].to_string()) else {
+                    return None;
+                };
 
                 Some(GpuInfo {
                     gpu_usage,
                     vram_max,
                     vram_used,
+                    gpu_temp,
                 })
             }
             Err(_) => None,
